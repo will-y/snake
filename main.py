@@ -52,12 +52,7 @@ class Main():
             for event in pg.event.get():
                 if(event.type == pg.QUIT):
                     sys.exit()
-
-            #get the current keys pressed
-            key = pg.key.get_pressed()
             
-            #Change the direction of the snake
-            self.changeDirection(key)
             #game tick
             self.gameTick()
             #draw things for the game
@@ -117,7 +112,15 @@ class Main():
         One tick of the game
         Controlls all motion of the game
         Can be sped up or slowed down depending on the clock
+        Can be called to run the game, decide direction and then run the tick
         """
+
+        #get the current keys pressed
+        key = pg.key.get_pressed()
+            
+        #Change the direction of the snake
+        self.changeDirection(key)
+
         positionToCheck = (0, 0)
 
         if(self.direction == 0):
