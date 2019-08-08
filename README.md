@@ -12,15 +12,15 @@ Links to start:
 
 TODO:
 - [ ] Create Game
-  - [ ] Draw Board
-  - [ ] Draw Snake
+  - [x] Draw Board
+  - [x] Draw Snake
   - [ ] Move Snake Around
-  - [ ] Die if hit side
+  - [x] Die if hit side
   - [ ] Spawn things to eat
   - [ ] Eating grows snake
-  - [ ] Hiting self kills you
+  - [x] Hiting self kills you
   - [ ] Score counter
-  - [ ] Have game run in ticks and be able to set tick speed so that machine learning can be faster
+  - [x] Have game run in ticks and be able to set tick speed so that machine learning can be faster
 - [ ] Machine learning
   - [ ] Create CNN (links above)
   - [ ] Get model to produce an output from a game state
