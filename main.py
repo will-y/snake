@@ -1,5 +1,6 @@
 import pygame as pg
 import sys
+import random
 
 class Main():
     def __init__(self):
@@ -27,7 +28,11 @@ class Main():
         #Clock for controlling fps
         self.clock = pg.time.Clock()
         #FPS min 1 max 1000 (default 4)
-        self.fps = 4
+        self.fps = 10
+        #If there is food on the screen
+        self.foodSpawned = False
+        #Spawn the first food
+        self.spawnFood(self.gridCount)
 
     def runGame(self):
         """
@@ -40,8 +45,10 @@ class Main():
                     sys.exit()
 
             #get the current keys pressed
-            self.key = pg.key.get_pressed()
+            key = pg.key.get_pressed()
             
+            #Change the direction of the snake
+            self.changeDirection(key)
             #game tick
             self.gameTick()
             #draw things for the game
@@ -59,10 +66,11 @@ class Main():
         Creates the game grid with walls on the outside
         0 = Empty
         1 = Wall
-        2, 3 = Player
-        4 = Dot
+        2 = Player
+        3 = Dot
         """
         grid = []
+        #Set the game grid with walls on the edges
         for x in range(gridCount):
             row = []
             for y in range(gridCount):
@@ -72,6 +80,7 @@ class Main():
                     row.append(0)
             grid.append(row)
         
+        #set the player
         grid[1][1] = 2
         
         return grid
@@ -87,11 +96,11 @@ class Main():
                     pg.draw.rect(self.screen, (61, 61, 61), (gridSize * x, gridSize * y, gridSize, gridSize), 1)
                 elif self.grid[x][y] == 2:
                     pg.draw.rect(self.screen, (35, 196, 14), (gridSize * x, gridSize * y, gridSize, gridSize), 0)
+                elif self.grid[x][y] == 3:
+                    pg.draw.rect(self.screen, (226, 242, 0), (gridSize * x, gridSize * y, gridSize, gridSize), 0)
                 else:
                     pg.draw.rect(self.screen, (143, 143, 143), (gridSize * x, gridSize * y, gridSize, gridSize), 1)
         
-        
-
     def gameTick(self):
         """
         One tick of the game
@@ -117,9 +126,11 @@ class Main():
         elif positionValue == 1 or positionValue == 2 or positionValue == 3:
             #Hit yourself or a wall, lose
             self.endGame(False)
-        elif positionValue == 4:
+        elif positionValue == 3:
             #Collect dot thing, grow and move into the place
             self.move(True, positionToCheck)
+            self.foodSpawned = False
+            self.spawnFood(self.gridCount)
 
     def move(self, grow, position):
         """
@@ -142,8 +153,6 @@ class Main():
         self.grid[positionToRemove[0]][positionToRemove[1]] = 0
         #Remove it from the array
         self.snake.__delitem__(0)
-        print(self.snake)
-        print(self.grid)
 
 
     def endGame(self, win):
@@ -152,6 +161,26 @@ class Main():
         Pass in a boolean to know if you won or lost
         """
         self.active = False
+    
+    def spawnFood(self, gridCount):
+        if(not self.foodSpawned):
+            xCoord = random.randint(1, gridCount - 1)
+            yCoord = random.randint(1, gridCount - 1)
+            if self.grid[xCoord][yCoord] == 0:
+                self.grid[xCoord][yCoord] = 3
+                self.foodSpawned = True
+            else:
+                self.spawnFood(gridCount)
+    
+    def changeDirection(self, key):
+        if(key[pg.K_UP] or key[pg.K_w]):
+            self.direction = 0
+        elif key[pg.K_RIGHT] or key[pg.K_d]:
+            self.direction = 1
+        elif key[pg.K_DOWN] or key[pg.K_s]:
+            self.direction = 2
+        elif key[pg.K_LEFT] or key[pg.K_a]:
+            self.direction = 3
 
 def main():
     pg.init()
