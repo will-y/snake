@@ -34,6 +34,13 @@ class Main():
         #Spawn the first food
         self.spawnFood(self.gridCount)
 
+        self.opposites = {
+            0 : 2,
+            1 : 3,
+            2 : 0,
+            3 : 1
+        }
+
     def runGame(self):
         """
         Runs the game with an infinte while loop
@@ -123,7 +130,7 @@ class Main():
         if(positionValue == 0):
             #valid space, move
             self.move(False, positionToCheck)
-        elif positionValue == 1 or positionValue == 2 or positionValue == 3:
+        elif positionValue == 1 or positionValue == 2:
             #Hit yourself or a wall, lose
             self.endGame(False)
         elif positionValue == 3:
@@ -173,14 +180,19 @@ class Main():
                 self.spawnFood(gridCount)
     
     def changeDirection(self, key):
+        direction = -1
         if(key[pg.K_UP] or key[pg.K_w]):
-            self.direction = 0
+            direction = 0
         elif key[pg.K_RIGHT] or key[pg.K_d]:
-            self.direction = 1
+            direction = 1
         elif key[pg.K_DOWN] or key[pg.K_s]:
-            self.direction = 2
+            direction = 2
         elif key[pg.K_LEFT] or key[pg.K_a]:
-            self.direction = 3
+            direction = 3
+        
+        #Make sure you can't turn back on yourself
+        if not self.opposites.get(direction) == self.direction and direction != -1:
+            self.direction = direction
 
 def main():
     pg.init()
