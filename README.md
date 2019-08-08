@@ -11,15 +11,15 @@ Links to start:
 <https://keras.io/#getting-started-30-seconds-to-keras> and <https://github.com/gsurma/atari/blob/master/convolutional_neural_network.py> Look at for learning how to create the CNN
 
 TODO:
-- [ ] Create Game
+- [x] Create Game
   - [x] Draw Board
   - [x] Draw Snake
-  - [ ] Move Snake Around
+  - [x] Move Snake Around
   - [x] Die if hit side
-  - [ ] Spawn things to eat
-  - [ ] Eating grows snake
+  - [x] Spawn things to eat
+  - [x] Eating grows snake
   - [x] Hiting self kills you
-  - [ ] Score counter
+  - [x] Score counter
   - [x] Have game run in ticks and be able to set tick speed so that machine learning can be faster
 - [ ] Machine learning
   - [ ] Create CNN (links above)
