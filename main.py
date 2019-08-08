@@ -33,6 +33,8 @@ class Main():
         self.foodSpawned = False
         #Spawn the first food
         self.spawnFood(self.gridCount)
+        #Score
+        self.score = 0
 
         self.opposites = {
             0 : 2,
@@ -45,7 +47,7 @@ class Main():
         """
         Runs the game with an infinte while loop
         """
-        while 1:
+        while self.active:
             # If exited, don't crash
             for event in pg.event.get():
                 if(event.type == pg.QUIT):
@@ -67,6 +69,8 @@ class Main():
 
             #Game Clock
             self.clock.tick(self.fps)
+
+        print("Final Score: {}".format(self.score))
     
     def createGrid(self, gridCount):
         """
@@ -147,6 +151,8 @@ class Main():
         self.position = position
         if not grow:
             self.removeTail()
+        else:
+            self.score += 10
 
         self.grid[position[0]][position[1]] = 2
 
