@@ -9,7 +9,7 @@ class Main():
         #The number of squares on the game board
         self.gridCount = 10
         #size of the screen
-        self.size = width, height = self.gridSize * self.gridCount, self.gridSize * self.gridCount
+        self.size = self.gridSize * self.gridCount, self.gridSize * self.gridCount
         #pygame screen
         self.screen = pg.display.set_mode(self.size)
         #creates the game grid
