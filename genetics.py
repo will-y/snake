@@ -5,7 +5,7 @@ from snake import Main
 import pygame as pg
 import copy
 class Genetics:
-    # Variables for controlling the genetics
+    # Parameters for controlling the genetics
     # Current itteration of the genetics
     run = 0
     # Current generation
@@ -26,13 +26,12 @@ class Genetics:
         # TODO: Have option to read from a file
         self.model = NeuralNetwork(input_shape=(10, 10), action_space=3).model
         pg.init()
-        self.snake = Main(self.show_graphics)
         # Create the initial population
         population = self.createInitalPopulation()
-        self.run(population)
+        self.runGenetics(population)
         
 
-    def run(self, population):
+    def runGenetics(self, population):
         """
         Runs the simulation
         """
@@ -44,10 +43,9 @@ class Genetics:
         # Run game for all members
         for i in range(0, self.population_size):
             self.model.set_weights(population[i])
-            # scores.update(self.gameCycle(self.model, i))
-            actions.append(self.gameCycle(self.model, i))
+            scores.update(self.gameCycle(self.model, i))
         
-        print(actions)
+        print(scores)
 
     def createInitalPopulation(self):
         """
@@ -87,17 +85,33 @@ class Genetics:
         pass
 
     def gameCycle(self, model, value):
+        """
+        Does a game cycle for the passed in model
+        Returns the score that it got
+        """
         #print("{}: \nWeights:\n{}".format(value, model.get_weights()))
         # q_values = model.predict(np.expand_dims(np.asarray(self.snake.grid).astype(np.float64), axis=0), batch_size=1)
         #print(np.asarray(self.snake.grid).astype(np.float64))
+        snake = Main(self.show_graphics, value, self.generation, self.run)
+        counter = 0
+        while snake.active:
+            q_values = model.predict(np.expand_dims(np.asarray(snake.grid).astype(np.float64), axis=0), batch_size=1)
+            action = np.argmax(q_values)
+            if action == 1:
+                snake.goLeft()
+            elif action == 2:
+                snake.goRight()
+            snake.gameTick()
+            if self.show_graphics:
+                snake.updateScreen()
+            counter += 1
+            if counter > 250:
+                self.run = self.run + 1
+                return {value: snake.score}
 
-        q_values = model.predict(np.expand_dims(np.asarray(self.snake.grid).astype(np.float64), axis=0), batch_size=1)
-        print(q_values)
-        print(np.argmax(q_values))
-        action = np.argmax(q_values)
-        
-        score = random.randint(0, 10)
-        return action
+        score = snake.score
+        self.run = self.run + 1
+        return {value : score}
         # return {value : score}
 
     def killWeak(self, population):

@@ -3,7 +3,7 @@ import sys
 import random
 
 class Main():
-    def __init__(self, showGraphics):
+    def __init__(self, showGraphics, individual=None, generation=None, run=None):
         # Used to show graphics or not
         self.showGraphics = showGraphics
         # The size of the individual grid squares
@@ -39,6 +39,16 @@ class Main():
         # Score
         self.score = 0
 
+        font = pg.font.SysFont("Arial", 12)
+        
+        if individual != None:
+            self.individualText = font.render("Individual: " + str(individual), True, (255, 255, 255))
+        if generation != None:
+            self.generationText = font.render("Generation: " + str(generation), True, (255, 255, 255))
+        if run != None:
+            self.runText = font.render("Total Runs: " + str(run), True, (255, 255, 255))
+
+        # Used to tell if a snake is trying to move back on itself
         self.opposites = {
             0 : 2,
             1 : 3,
@@ -62,9 +72,6 @@ class Main():
 
             # draw things for the game
             self.updateScreen()
-            
-            # Game Clock
-            self.clock.tick(self.fps)
 
         print("Final Score: {}".format(self.score))
 
@@ -73,8 +80,16 @@ class Main():
             self.screen.fill((110, 110, 110))
             self.drawGrid(self.gridSize, self.gridCount)
 
+            if self.individualText:
+                self.screen.blit(self.individualText, (5, 0))
+            if self.generationText:
+                self.screen.blit(self.generationText, (5, 20))
+            if self.individualText:
+                self.screen.blit(self.runText, (5, 40))
+
             # update the screen
             pg.display.flip()
+            self.clock.tick(self.fps)
     
     def createGrid(self, gridCount):
         """
@@ -211,6 +226,29 @@ class Main():
         # Make sure you can't turn back on yourself
         if not self.opposites.get(direction) == self.direction and direction != -1:
             self.direction = direction
+    
+    def goLeft(self):
+        """
+        Used for the model to turn left
+        """
+        self.direction = self.direction - 1
+
+        if self.direction == -1:
+            self.direction = 3
+
+    def goRight(self):
+        """
+        Used for the model to turn right
+        """
+        self.direction = self.direction + 1
+        if self.direction == 4:
+            self.direction = 0
+
+    def resetGame(self):
+        """
+        Resets the game so that it can be played again
+        """
+        self.__init__(self.showGraphics)
 
 def start():
     pg.init()
