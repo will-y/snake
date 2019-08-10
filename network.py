@@ -3,7 +3,7 @@ from keras.models import Sequential
 from keras.layers import Conv2D, Flatten, Dense
 
 
-class ConvolutionalNeuralNetwork:
+class NeuralNetwork:
 
     def __init__(self, input_shape, action_space):
         self.model = Sequential()
@@ -15,4 +15,3 @@ class ConvolutionalNeuralNetwork:
                                              epsilon=0.01),
                            metrics=["accuracy"])
         self.model.summary()
-ConvolutionalNeuralNetwork((10, 10), 3)
