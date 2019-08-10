@@ -3,37 +3,40 @@ import sys
 import random
 
 class Main():
-    def __init__(self):
-        #The size of the individual grid squares
+    def __init__(self, showGraphics):
+        # Used to show graphics or not
+        self.showGraphics = showGraphics
+        # The size of the individual grid squares
         self.gridSize = 50
-        #The number of squares on the game board
+        # The number of squares on the game board
         self.gridCount = 10
-        #size of the screen
+        # size of the screen
         self.size = self.gridSize * self.gridCount, self.gridSize * self.gridCount
-        #pygame screen
-        self.screen = pg.display.set_mode(self.size)
-        #creates the game grid
+        # pygame screen
+        if self.showGraphics:
+            self.screen = pg.display.set_mode(self.size)
+        # creates the game grid
         self.grid = self.createGrid(self.gridCount)
-        #0: up
-        #1: right
-        #2: down
-        #3 left
+        # 0: up
+        # 1: right
+        # 2: down
+        # 3 left
         self.direction = 1
-        #Current position of the head of the snake
+        # Current position of the head of the snake
         self.position = x, y = 1, 1
-        #Is the game active?
+        # Is the game active?
         self.active = True
-        #Stores all of the positions of the snake
+        # Stores all of the positions of the snake
         self.snake = [(1, 1)]
-        #Clock for controlling fps
+        # Clock for controlling fps
         self.clock = pg.time.Clock()
-        #FPS min 1 max 1000 (default 4)
+        # FPS min 1 max 1000 (default 10)
         self.fps = 10
-        #If there is food on the screen
+        # If there is food on the screen
         self.foodSpawned = False
-        #Spawn the first food
+        # Spawn the first food
         self.spawnFood(self.gridCount)
-        #Score
+        # Score
         self.score = 0
 
         self.opposites = {
@@ -46,6 +49,7 @@ class Main():
     def runGame(self):
         """
         Runs the game with an infinte while loop
+        Shouldn't be called frmo the machine learning unless it is showing graphics
         """
         while self.active:
             # If exited, don't crash
@@ -53,19 +57,24 @@ class Main():
                 if(event.type == pg.QUIT):
                     sys.exit()
             
-            #game tick
+            # game tick
             self.gameTick()
-            #draw things for the game
-            self.screen.fill((110, 110, 110))
-            self.drawGrid(self.gridSize, self.gridCount)
 
-            #update the screen
-            pg.display.flip()
-
-            #Game Clock
+            # draw things for the game
+            self.updateScreen()
+            
+            # Game Clock
             self.clock.tick(self.fps)
 
         print("Final Score: {}".format(self.score))
+
+    def updateScreen(self):
+        if self.showGraphics:
+            self.screen.fill((110, 110, 110))
+            self.drawGrid(self.gridSize, self.gridCount)
+
+            # update the screen
+            pg.display.flip()
     
     def createGrid(self, gridCount):
         """
@@ -76,7 +85,7 @@ class Main():
         3 = Dot
         """
         grid = []
-        #Set the game grid with walls on the edges
+        # Set the game grid with walls on the edges
         for x in range(gridCount):
             row = []
             for y in range(gridCount):
@@ -86,7 +95,7 @@ class Main():
                     row.append(0)
             grid.append(row)
         
-        #set the player
+        # Set the player
         grid[1][1] = 2
         
         return grid
@@ -115,10 +124,10 @@ class Main():
         Can be called to run the game, decide direction and then run the tick
         """
 
-        #get the current keys pressed
+        # get the current keys pressed
         key = pg.key.get_pressed()
             
-        #Change the direction of the snake
+        # Change the direction of the snake
         self.changeDirection(key)
 
         positionToCheck = (0, 0)
@@ -135,13 +144,13 @@ class Main():
         positionValue = self.grid[positionToCheck[0]][positionToCheck[1]]
 
         if(positionValue == 0):
-            #valid space, move
+            # valid space, move
             self.move(False, positionToCheck)
         elif positionValue == 1 or positionValue == 2:
-            #Hit yourself or a wall, lose
+            # Hit yourself or a wall, lose
             self.endGame(False)
         elif positionValue == 3:
-            #Collect dot thing, grow and move into the place
+            # Collect dot thing, grow and move into the place
             self.move(True, positionToCheck)
             self.foodSpawned = False
             self.spawnFood(self.gridCount)
@@ -163,11 +172,11 @@ class Main():
         """
         Remove the last block from the snake when it doesn't grow
         """
-        #Get the tail
+        # Get the tail
         positionToRemove = self.snake[0]
-        #Remove it from the grid
+        # Remove it from the grid
         self.grid[positionToRemove[0]][positionToRemove[1]] = 0
-        #Remove it from the array
+        # Remove it from the array
         self.snake.__delitem__(0)
 
 
@@ -199,13 +208,14 @@ class Main():
         elif key[pg.K_LEFT] or key[pg.K_a]:
             direction = 3
         
-        #Make sure you can't turn back on yourself
+        # Make sure you can't turn back on yourself
         if not self.opposites.get(direction) == self.direction and direction != -1:
             self.direction = direction
 
-def main():
+def start():
     pg.init()
-    main = Main()
+    main = Main(False)
     main.runGame()
 
-main()
+# Uncomment this to play the game
+# start()
