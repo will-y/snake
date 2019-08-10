@@ -40,7 +40,9 @@ class Main():
         self.score = 0
 
         font = pg.font.SysFont("Arial", 12)
-        
+        self.individualText = None
+        self.generationText = None
+        self.runTest = None
         if individual != None:
             self.individualText = font.render("Individual: " + str(individual), True, (255, 255, 255))
         if generation != None:
@@ -80,11 +82,11 @@ class Main():
             self.screen.fill((110, 110, 110))
             self.drawGrid(self.gridSize, self.gridCount)
 
-            if self.individualText:
+            if self.individualText != None:
                 self.screen.blit(self.individualText, (5, 0))
-            if self.generationText:
+            if self.generationText != None:
                 self.screen.blit(self.generationText, (5, 20))
-            if self.individualText:
+            if self.individualText != None:
                 self.screen.blit(self.runText, (5, 40))
 
             # update the screen
@@ -252,7 +254,7 @@ class Main():
 
 def start():
     pg.init()
-    main = Main(False)
+    main = Main(True)
     main.runGame()
 
 # Uncomment this to play the game
