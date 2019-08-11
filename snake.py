@@ -31,13 +31,15 @@ class Main():
         # Clock for controlling fps
         self.clock = pg.time.Clock()
         # FPS min 1 max 1000 (default 10)
-        self.fps = 10
+        self.fps = 50
         # If there is food on the screen
         self.foodSpawned = False
         # Spawn the first food
         self.spawnFood(self.gridCount)
         # Score
         self.score = 0
+        # Move Counter
+        self.moves = 0
 
         font = pg.font.SysFont("Arial", 12)
         self.individualText = None
@@ -171,6 +173,8 @@ class Main():
             self.move(True, positionToCheck)
             self.foodSpawned = False
             self.spawnFood(self.gridCount)
+        
+        self.moves += 1
 
     def move(self, grow, position):
         """

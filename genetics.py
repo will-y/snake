@@ -4,6 +4,7 @@ import random
 from snake import Main
 import pygame as pg
 import copy
+import operator
 class Genetics:
     # Parameters for controlling the genetics
     # Current itteration of the genetics
@@ -20,6 +21,8 @@ class Genetics:
     random_weight_range = 1.0
     # Display the graphics or not
     show_graphics = True
+    # Number of generations to run
+    maxGenerations = 4
 
     def __init__(self):
         # Get the initial neural network model
@@ -29,23 +32,6 @@ class Genetics:
         # Create the initial population
         population = self.createInitalPopulation()
         self.runGenetics(population)
-        
-
-    def runGenetics(self, population):
-        """
-        Runs the simulation
-        """
-
-        # Scores for all of the populations
-        scores = {}
-        actions = []
-
-        # Run game for all members
-        for i in range(0, self.population_size):
-            self.model.set_weights(population[i])
-            scores.update(self.gameCycle(self.model, i))
-        
-        print(scores)
 
     def createInitalPopulation(self):
         """
@@ -71,27 +57,14 @@ class Genetics:
                         if not isinstance(c_layer, np.ndarray):
                             initialWeights[a][b][c] = self.getRandomWeight()
                             continue
-                        for d in range(0, len(c_layer)):
-                            d_layer = c_layer[d]
-                            for e in range(0, len(d_layer)):
-                                initialWeights[a][b][c][d][e] = self.getRandomWeight()
             population.append(copy.deepcopy(individual))
         return population
-
-    def breed(self, parent1, parent2):
-        pass
-
-    def breedAll(self, parent1, parent2):
-        pass
 
     def gameCycle(self, model, value):
         """
         Does a game cycle for the passed in model
         Returns the score that it got
         """
-        #print("{}: \nWeights:\n{}".format(value, model.get_weights()))
-        # q_values = model.predict(np.expand_dims(np.asarray(self.snake.grid).astype(np.float64), axis=0), batch_size=1)
-        #print(np.asarray(self.snake.grid).astype(np.float64))
         snake = Main(self.show_graphics, value, self.generation, self.run)
         counter = 0
         while snake.active:
@@ -107,23 +80,99 @@ class Genetics:
             counter += 1
             if counter > 250:
                 self.run = self.run + 1
-                return {value: snake.score}
+                return {value: self.calculateScore(snake)}
 
-        score = snake.score
+        score = self.calculateScore(snake)
         self.run = self.run + 1
         return {value : score}
         # return {value : score}
 
-    def killWeak(self, population):
-        pass
+    def runGenetics(self, population):
+        """
+        Runs the simulation
+        """
 
-    def breedToFull(self, population):
-        pass
+        # Scores for all of the populations
+        scores = {}
+        actions = []
+
+        # Run game for all members
+        for i in range(0, self.population_size):
+            self.model.set_weights(population[i])
+            scores.update(self.gameCycle(self.model, i))
+        
+        print(scores)
+        self.generation += 1
+
+        # Kill the bottom 90% of the population
+        parents = self.killWeak(population, scores)
+
+        # Breed new ones from the top 10% of performers
+        newPopulation = self.breedToFull(parents)
+        print(len(newPopulation))
+        if self.generation < self.maxGenerations:
+            self.runGenetics(newPopulation)
+
+    def killWeak(self, population, scores):
+        sortedScores = sorted(scores.items(), key=operator.itemgetter(1))
+        sortedScores.reverse()
+        # TODO: Change later to get random amounts of 0's at end
+        sortedScores = sortedScores[:int(self.population_size * self.selection_rate)]
+        
+        newPopulationIds = []
+        for i in range(0, len(sortedScores)):
+            newPopulationIds.append(sortedScores[i][0])
+        print(newPopulationIds)
+
+        newPopulation = []
+        
+        for i in range(0, len(newPopulationIds)):
+            newPopulation.append(population[i])
+        
+        return newPopulation
+
+    def breedToFull(self, parents):
+        newPopulation = copy.deepcopy(parents)
+        while len(newPopulation) < self.population_size:
+            parent1 = random.choice(parents)
+            parent2 = random.choice(parents)
+            if not np.array_equiv(parent1, parent2):
+                newPopulation.append(self.breed(parent1, parent2))
+        
+        return newPopulation
+
+    def breed(self, parent1, parent2):
+        """
+        Breeds two parents together to get a child
+        The child gets attributes from both of its parents
+        """
+        child = parent1
+        for a in range(0, len(child)):
+            a_layer = child[a]
+            for b in range(0, len(a_layer)):
+                b_layer = a_layer[b]
+                if not isinstance(b_layer, np.ndarray):
+                    if random.choice((True, False)):
+                        child[a][b] = parent2[a][b]
+                    continue
+                for c in range(0, len(b_layer)):
+                    c_layer = b_layer[c]
+                    if not isinstance(c_layer, np.ndarray):
+                        if random.choice((True, False)):
+                            child[a][b][c] = parent2[a][b][c]
+                        continue
+
+        return child
 
     def mutate(self, population):
         pass
 
     def getRandomWeight(self):
         return random.uniform(-self.random_weight_range, self.random_weight_range)
+
+    def calculateScore(self, snake):
+        if snake.moves > 100:
+            return -15.0
+        return snake.score
 
 Genetics()
