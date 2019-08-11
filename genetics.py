@@ -5,6 +5,7 @@ from snake import Main
 import pygame as pg
 import copy
 import operator
+
 class Genetics:
     # Parameters for controlling the genetics
     # Current itteration of the genetics
@@ -22,9 +23,13 @@ class Genetics:
     # Display the graphics or not
     show_graphics = True
     # Number of generations to run
-    maxGenerations = 4
+    maxGenerations = 10
 
     def __init__(self):
+        # Set up the distribution for selecting parents
+        self.distribution = []
+        for i in range(0, int(self.population_size * self.selection_rate)):
+            self.distribution += [i] * (int(self.population_size * self.selection_rate) - i)
         # Get the initial neural network model
         # TODO: Have option to read from a file
         self.model = NeuralNetwork(input_shape=(10, 10), action_space=3).model
@@ -109,7 +114,8 @@ class Genetics:
 
         # Breed new ones from the top 10% of performers
         newPopulation = self.breedToFull(parents)
-        print(len(newPopulation))
+        newPopulation = self.mutate(newPopulation)
+        print("Generation: {}".format(self.generation))
         if self.generation < self.maxGenerations:
             self.runGenetics(newPopulation)
 
@@ -133,6 +139,7 @@ class Genetics:
 
     def breedToFull(self, parents):
         newPopulation = copy.deepcopy(parents)
+
         while len(newPopulation) < self.population_size:
             parent1 = random.choice(parents)
             parent2 = random.choice(parents)
@@ -165,7 +172,26 @@ class Genetics:
         return child
 
     def mutate(self, population):
-        pass
+        """
+        Mutates the population randomly based on the mutation rate
+        """
+        for i in range(0, len(population)):
+            toMutate = population[i]
+            for a in range(0, len(toMutate)):
+                a_layer = toMutate[a]
+                for b in range(0, len(a_layer)):
+                    b_layer = a_layer[b]
+                    if not isinstance(b_layer, np.ndarray):
+                        if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+                            toMutate[a][b] = self.getRandomWeight()
+                        continue
+                    for c in range(0, len(b_layer)):
+                        c_layer = b_layer[c]
+                        if not isinstance(c_layer, np.ndarray):
+                            if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+                                toMutate[a][b][c] = self.getRandomWeight()
+                            continue
+        return population
 
     def getRandomWeight(self):
         return random.uniform(-self.random_weight_range, self.random_weight_range)
