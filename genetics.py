@@ -5,6 +5,8 @@ from snake import Main
 import pygame as pg
 import copy
 import operator
+import matplotlib
+import matplotlib.pyplot as plt
 
 class Genetics:
     # Parameters for controlling the genetics
@@ -23,7 +25,9 @@ class Genetics:
     # Display the graphics or not
     show_graphics = True
     # Number of generations to run
-    maxGenerations = 10
+    maxGenerations = 3
+    # List that stores the average score of every generation
+    generationScores = []
 
     def __init__(self):
         # Set up the distribution for selecting parents
@@ -83,7 +87,7 @@ class Genetics:
             if self.show_graphics:
                 snake.updateScreen()
             counter += 1
-            if counter > 250:
+            if counter > 10000:
                 self.run = self.run + 1
                 return {value: self.calculateScore(snake)}
 
@@ -99,7 +103,6 @@ class Genetics:
 
         # Scores for all of the populations
         scores = {}
-        actions = []
 
         # Run game for all members
         for i in range(0, self.population_size):
@@ -107,6 +110,7 @@ class Genetics:
             scores.update(self.gameCycle(self.model, i))
         
         print(scores)
+        self.generationScores.append(self.average(scores))
         self.generation += 1
 
         # Kill the bottom 90% of the population
@@ -114,10 +118,21 @@ class Genetics:
 
         # Breed new ones from the top 10% of performers
         newPopulation = self.breedToFull(parents)
-        newPopulation = self.mutate(newPopulation)
+        #newPopulation = self.mutate(newPopulation)
         print("Generation: {}".format(self.generation))
         if self.generation < self.maxGenerations:
             self.runGenetics(newPopulation)
+        else:
+            # Ending things
+            print(self.generationScores)
+            x = range(0, self.maxGenerations)
+
+            fig, ax = plt.subplots()
+            ax.plot(x, self.generationScores)
+            ax.set(xlabel='generation', ylabel='avg score', title='Generations Over Time')
+            ax.grid()
+            fig.savefig("test.png")
+            plt.show()
 
     def killWeak(self, population, scores):
         sortedScores = sorted(scores.items(), key=operator.itemgetter(1))
@@ -159,13 +174,17 @@ class Genetics:
             for b in range(0, len(a_layer)):
                 b_layer = a_layer[b]
                 if not isinstance(b_layer, np.ndarray):
-                    if random.choice((True, False)):
-                        child[a][b] = parent2[a][b]
+                    if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+                        child[a][b] = self.getRandomWeight()
+                    elif random.choice((True, False)):
+                            child[a][b] = parent2[a][b]
                     continue
                 for c in range(0, len(b_layer)):
                     c_layer = b_layer[c]
                     if not isinstance(c_layer, np.ndarray):
-                        if random.choice((True, False)):
+                        if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+                            child[a][b][c] = self.getRandomWeight()
+                        elif random.choice((True, False)):
                             child[a][b][c] = parent2[a][b][c]
                         continue
 
@@ -197,8 +216,19 @@ class Genetics:
         return random.uniform(-self.random_weight_range, self.random_weight_range)
 
     def calculateScore(self, snake):
-        if snake.moves > 100:
-            return -15.0
-        return snake.score
+        score = snake.score + snake.moves / 100
+        if snake.moves > 10000:
+            score -= 1000
+        if snake.endedLoop:
+            score -= 1
+
+        return score
+
+    def average(self, list):
+        total = 0
+        for i in range(len(list)):
+            total += list[i]
+        
+        return total / len(list)
 
 Genetics()

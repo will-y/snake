@@ -40,6 +40,12 @@ class Main():
         self.score = 0
         # Move Counter
         self.moves = 0
+        # Last move used
+        self.lastMove = -1
+        # Counter to help prevent loops
+        self.lastMoveCounter = 0
+        # If the game ended in a loop
+        self.endedLoop = False
 
         font = pg.font.SysFont("Arial", 12)
         self.individualText = None
@@ -176,6 +182,10 @@ class Main():
         
         self.moves += 1
 
+        if self.lastMoveCounter >= 100:
+            self.active = False
+            self.endedLoop = True
+
     def move(self, grow, position):
         """
         Moves the snake based on the direction
@@ -237,8 +247,12 @@ class Main():
         """
         Used for the model to turn left
         """
+        if self.lastMove == 1:
+            self.lastMoveCounter += 1
+        else:
+            self.lastMoveCounter = 0
+        self.lastMove = 1
         self.direction = self.direction - 1
-
         if self.direction == -1:
             self.direction = 3
 
@@ -246,6 +260,11 @@ class Main():
         """
         Used for the model to turn right
         """
+        if self.lastMove == 2:
+            self.lastMoveCounter += 1
+        else:
+            self.lastMoveCounter = 0
+        self.lastMove = 2
         self.direction = self.direction + 1
         if self.direction == 4:
             self.direction = 0

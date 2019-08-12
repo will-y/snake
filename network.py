@@ -7,7 +7,9 @@ class NeuralNetwork:
 
     def __init__(self, input_shape, action_space):
         self.model = Sequential()
-        self.model.add(Dense(64, activation="relu", input_shape=input_shape))
+        self.model.add(Dense(128, activation="relu", input_shape=input_shape))
+        self.model.add(Dense(64))
+        self.model.add(Dense(32))
         self.model.add(Dense(32))
         self.model.add(Flatten())
         self.model.add(Dense(action_space))
