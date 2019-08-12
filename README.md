@@ -21,23 +21,23 @@ TODO:
   - [x] Hiting self kills you
   - [x] Score counter
   - [x] Have game run in ticks and be able to set tick speed so that machine learning can be faster
-- [ ] Machine learning
-  - [ ] Create CNN (links above)
-  - [ ] Get model to produce an output from a game state
-    - [ ] Game State = array of the board that each have a number, 0 is blank, 1 is a wall, 2 is the snake (any part of it), 3 is the dot
-    - [ ] Or Game State = {what is to left, what is to right, what is above} using same numbers
-  - [ ] Create the genetic learning model to do the following:
-    - [ ] Create the initial population (random models)
-    - [ ] Breed two individuals together
-    - [ ] Select the best individuals in the population (certain percent)
-    - [ ] Mutate an individual (have random changes to specific parameters in the model)
-    - [ ] Kill off the worse individuals and breed more until the population is back to its original size
-  - [ ] Run and hope
+- [x] Machine learning
+  - [x] Create NN (links above)
+  - [x] Get model to produce an output from a game state
+    - [x] Game State = array of the board that each have a number, 0 is blank, 1 is a wall, 2 is the snake (any part of it), 3 is the dot
+    - [ ] ~~Or Game State = {what is to left, what is to right, what is above} using same numbers~~
+  - [x] Create the genetic learning model to do the following:
+    - [x] Create the initial population (random models)
+    - [x] Breed two individuals together
+    - [x] Select the best individuals in the population (certain percent)
+    - [x] Mutate an individual (have random changes to specific parameters in the model)
+    - [x] Kill off the worse individuals and breed more until the population is back to its original size
+  - [x] Run and hope
 - [ ] Display current progress
-  - [ ] Display stats about the current generation (live updates? might run too fast)
-  - [ ] Show a run through of the game given an individual
+  - [x] Display stats about the current generation (live updates)
+  - [x] Show a run through of the game given an individual
   - [ ] Show a list of options and view the game that it played
-  - [ ] Graphs about increases in score over different generations
+  - [x] Graphs about increases in score over different generations
   
   
 NOTES:
