@@ -42,17 +42,8 @@ TODO:
   
   
 NOTES:
-Input Shape = The grid thats already inplemented in the game, will be (right now) a square of size gridCount x gridCound
-ex:
- [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
- [1, 2, 2, 0, 0, 0, 0, 0, 0, 1], 
- [1, 0, 2, 2, 0, 0, 0, 0, 0, 1], 
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
- [1, 0, 0, 0, 0, 0, 3, 0, 0, 1], 
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
- [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+Input Shape = a list with length 16. Will include the distance to food and distance to itself/wall in every direction:
+   N     NE     E      SE      S      SW     W     NW
+[4, 4, 3, -1, 5, -1, 7, -1, 6, -1, 10, -1, 5, -1, 6, -1]
  
- Action Space = ["Left", "Right", "None"] => Possible actions that the machine can do. Left and right will move left and right of the current direction that the snake is moving, none will cause the snake to do nothing and just move forward
+ Action Space = ["up", "down", "left", "right"]: The four directions that the snake can move in, going forward or backwards from the current direction won't do anything
