@@ -4,11 +4,12 @@ Snake game this will be playable by humans and have a genetic machine learning p
 Links to start:
 <https://towardsdatascience.com/atari-solving-games-with-ai-part-2-neuroevolution-aac2ebb6c72b> Article on doing something similar with a different game
 
-<https://www.pygame.org/news> Graphics Library
+<https://www.pygame.org/news> Graphics Library (only for game)
 
 <https://keras.io/> Neural Network library
 
 <https://keras.io/#getting-started-30-seconds-to-keras> and <https://github.com/gsurma/atari/blob/master/convolutional_neural_network.py> Look at for learning how to create the CNN
+<https://kivy.org/#home> New Gui Library (Not for the game for now)
 
 TODO:
 - [x] Create Game
