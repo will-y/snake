@@ -1,15 +1,16 @@
 import pygame as pg
 import sys
 import random
+import math
 
 class Main():
     def __init__(self, showGraphics, individual=None, generation=None, run=None):
         # Used to show graphics or not
         self.showGraphics = showGraphics
         # The size of the individual grid squares
-        self.gridSize = 50
+        self.gridSize = 15
         # The number of squares on the game board
-        self.gridCount = 10
+        self.gridCount = 30
         # size of the screen
         self.size = self.gridSize * self.gridCount, self.gridSize * self.gridCount
         # pygame screen
@@ -34,6 +35,8 @@ class Main():
         self.fps = 50
         # If there is food on the screen
         self.foodSpawned = False
+        # Location of the food
+        self.foodPos = (0, 0)
         # Spawn the first food
         self.spawnFood(self.gridCount)
         # Score
@@ -46,6 +49,10 @@ class Main():
         self.lastMoveCounter = 0
         # If the game ended in a loop
         self.endedLoop = False
+        # Boolean for if the snake moved towards the food
+        self.towardsFood = True
+        # Moves left before the snake dies, resets when food is eaten
+        self.movesLeft = 200
 
         font = pg.font.SysFont("Arial", 12)
         self.individualText = None
@@ -181,6 +188,9 @@ class Main():
             self.spawnFood(self.gridCount)
         
         self.moves += 1
+        self.movesLeft -= 1
+        if self.movesLeft <= 0:
+            self.active = False
 
         if self.lastMoveCounter >= 100:
             self.active = False
@@ -192,10 +202,12 @@ class Main():
         """
         self.snake.append(position)
         self.position = position
+
         if not grow:
             self.removeTail()
         else:
-            self.score += 10
+            self.score += 1
+            self.movesLeft = 200
 
         self.grid[position[0]][position[1]] = 2
 
@@ -219,9 +231,14 @@ class Main():
         self.active = False
     
     def spawnFood(self, gridCount):
+        """
+        Spawns food in a random location
+        Called when food is collected and when the game starts
+        """
         if(not self.foodSpawned):
             xCoord = random.randint(1, gridCount - 1)
             yCoord = random.randint(1, gridCount - 1)
+            self.foodPos = (xCoord, yCoord)
             if self.grid[xCoord][yCoord] == 0:
                 self.grid[xCoord][yCoord] = 3
                 self.foodSpawned = True
@@ -243,37 +260,102 @@ class Main():
         if not self.opposites.get(direction) == self.direction and direction != -1:
             self.direction = direction
     
-    def goLeft(self):
-        """
-        Used for the model to turn left
-        """
-        if self.lastMove == 1:
-            self.lastMoveCounter += 1
-        else:
-            self.lastMoveCounter = 0
-        self.lastMove = 1
-        self.direction = self.direction - 1
-        if self.direction == -1:
-            self.direction = 3
+    def rotate(self, direction):
+        if direction != self.opposites.get(self.direction):
+            self.direction = direction
 
-    def goRight(self):
-        """
-        Used for the model to turn right
-        """
-        if self.lastMove == 2:
-            self.lastMoveCounter += 1
+    def getFitness(self):
+        if self.score < 10:
+            fitness = math.floor(self.moves * self.moves) * pow(2,self.score)
         else:
-            self.lastMoveCounter = 0
-        self.lastMove = 2
-        self.direction = self.direction + 1
-        if self.direction == 4:
-            self.direction = 0
+            fitness = math.floor(self.moves * self.moves)
+            fitness *= pow(2,10)
+            fitness *= (self.score - 9)
 
-    def resetGame(self):
+        return fitness
+    
+    def createVision(self):
         """
-        Resets the game so that it can be played again
+        Used to create the list to insert into neural network
+        Consits of 16 parameters, 8 directions with distance to food and distance to a wall/body for each direction
         """
-        self.__init__(self.showGraphics)
+        #            N       NE      E      SE       S      SW       W      NW
+        #          0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
+        result = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        
+        i = 1
+        y = self.position[0]
+        x = self.position[1]
+        while i < self.gridCount:
+            #N
+            if y - i >= 0:
+                temp = self.grid[y - i][x]
+                if temp == 1 or temp == 2:
+                    result[0] = 1/i
+                elif temp == 3:
+                    result[1] = 1/i
+                    
+            #NE
+            if x + i < self.gridCount and y - i >= 0:
+                temp = self.grid[y - i][x + i]
+                if temp == 1 or temp == 2:
+                    result[2] = 1/i
+                elif temp == 3:
+                    result[3] = 1/i
+            
+            #E
+            if x + i < self.gridCount:
+                temp = self.grid[y][x + i]
+                if temp == 1 or temp == 2:
+                    result[4] = 1/i
+                elif temp == 3:
+                    result[5] = 1/i
+            
+            #SE
+            if x + i < self.gridCount and y + i < self.gridCount:
+                temp = self.grid[y + i][x + i]
+                if temp == 1 or temp == 2:
+                    result[6] = 1/i
+                elif temp == 3:
+                    result[7] = 1/i
+                    
+            #S
+            if y + i < self.gridCount:
+                temp = self.grid[y + i][x]
+                if temp == 1 or temp == 2:
+                    result[8] = 1/i
+                elif temp == 3:
+                    result[9] = 1/i
+            
+            #SW
+            if x - i >= 0 and y + i < self.gridCount:
+                temp = self.grid[y + i][x - i]
+                if temp == 1 or temp == 2:
+                    result[10] = 1/i
+                elif temp == 3:
+                    result[11] = 1/i
+                    
+            #W
+            if x - i >= 0:
+                temp = self.grid[y][x - i]
+                if temp == 1 or temp == 2:
+                    result[12] = 1/i
+                elif temp == 3:
+                    result[13] = 1/i
+                    
+            #NW
+            if x - i >= 0 and y - i >= 0:
+                temp = self.grid[y - i][x - i]
+                if temp == 1 or temp == 2:
+                    result[14] = 1/i
+                elif temp == 3:
+                    result[15] = 1/i
+                
+            i += 1
+
+        #print("   N     NE     E     SE      S      SW     W      NW")
+        #print(result)
+        return result
 
 def start():
     pg.init()
