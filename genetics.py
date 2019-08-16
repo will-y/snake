@@ -16,15 +16,15 @@ class Genetics:
     # Current generation
     generation = 0
     # Number of individuals that will be selected to breed (default = 0.1)
-    selection_rate = 0.05
+    selection_rate = 0.1
     # Chance that a gene will mutate (default = 0.01)
     mutation_rate = 0.01
     # Size of the population (default = 100)
-    population_size = 200
+    population_size = 100
     # Range of weights (default = 1.0)
     random_weight_range = 1.0
     # Number of generations to run (default = 100)
-    max_generations = 500
+    max_generations = 100
     # Display the graphics or not (default = True)
     show_graphics = True
     # If true, will save the last generation that can be loaded and started from later (default = False)
@@ -263,7 +263,7 @@ class Genetics:
         if self.save_best:
             os.makedirs('./runs/run{}/best'.format(self.overallRun), exist_ok=True)
             self.model.set_weights(best)
-            self.model.save('./runs/run{}/best/generation{}/h5'.format(self.overallRun, self.generation))
+            self.model.save('./runs/run{}/best/generation{}.h5'.format(self.overallRun, self.generation))
 
     def average(self, list):
         total = 0
