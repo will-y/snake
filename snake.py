@@ -24,11 +24,11 @@ class Main():
         # 3 left
         self.direction = 1
         # Current position of the head of the snake
-        self.position = x, y = 1, 1
+        self.position = x, y = int(self.gridCount / 2), int(self.gridCount / 2)
         # Is the game active?
         self.active = True
         # Stores all of the positions of the snake
-        self.snake = [(1, 1)]
+        self.snake = [(int(self.gridCount / 2), int(self.gridCount / 2))]
         # Clock for controlling fps
         self.clock = pg.time.Clock()
         # FPS min 1 max 1000 (default 10)
@@ -128,7 +128,7 @@ class Main():
             grid.append(row)
         
         # Set the player
-        grid[1][1] = 2
+        grid[int(self.gridCount / 2)][int(self.gridCount / 2)] = 2
         
         return grid
     
@@ -265,14 +265,7 @@ class Main():
             self.direction = direction
 
     def getFitness(self):
-        if self.score < 10:
-            fitness = math.floor(self.moves * self.moves) * pow(2,self.score)
-        else:
-            fitness = math.floor(self.moves * self.moves)
-            fitness *= pow(2,10)
-            fitness *= (self.score - 9)
-
-        return fitness
+        return self.score * 10 + self.moves / 10
     
     def createVision(self):
         """

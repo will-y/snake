@@ -7,6 +7,7 @@ import copy
 import operator
 import matplotlib
 import matplotlib.pyplot as plt
+import os
 
 class Genetics:
     # Parameters for controlling the genetics
@@ -17,15 +18,21 @@ class Genetics:
     # Number of individuals that will be selected to breed
     selection_rate = 0.1
     # Chance that a gene will mutate
-    mutation_rate = 0.1
+    mutation_rate = 0.01
     # Size of the population
-    population_size = 200
+    population_size = 100
     # Range of weights
     random_weight_range = 1.0
+    # Number of generations to run
+    max_generations = 100
     # Display the graphics or not
     show_graphics = True
-    # Number of generations to run
-    maxGenerations = 100
+    # If true, will save the last generation that can be loaded and started from later
+    save_population = False
+    # If true, will save the best individual from every generation
+    save_best = False
+    # If true, will save the graph at the end to a png 
+    save_graph = False
     # List that stores the average score of every generation
     generationScores = []
     # Generation max scores
@@ -35,10 +42,19 @@ class Genetics:
         # Get the initial neural network model
         # TODO: Have option to read from a file
         self.model = NeuralNetwork(input_shape=(16), action_space=4).model
+        # The number of the run the program is on, used for saving the models
+        self.overallRun = 0
+        # Stuff for reading the file
+        runFile = open("./runs/run.txt", 'r')
+        self.overallRun = int(runFile.read(1))
+        runFile.close()
         pg.init()
         # Create the initial population
         population = self.createInitalPopulation()
         self.runGenetics(population)
+        runFile = open("./runs/run.txt", 'w')
+        runFile.write(str(self.overallRun + 1))
+        runFile.close()
 
     def createInitalPopulation(self):
         """
@@ -97,7 +113,7 @@ class Genetics:
         """
         Runs the simulation
         """
-        while self.generation < self.maxGenerations:
+        while self.generation < self.max_generations:
             # Scores for all of the populations
             scores = {}
 
@@ -122,15 +138,18 @@ class Genetics:
         # Ending things
         print(self.generationScores)
         print(self.generationMaxScores)
-        x = range(0, self.maxGenerations)
-
+        x = range(0, self.max_generations)
 
         fig, ax = plt.subplots()
         ax.plot(x, self.generationScores, x, self.generationMaxScores)
         ax.set(xlabel='generation', ylabel='avg score', title='Generations Over Time')
         ax.grid()
-        fig.savefig("test.png")
+        if self.save_graph:
+            fig.savefig("graph{}.png".format(self.overallRun))
         plt.show()
+
+        self.savePopulation(population)
+
 
     def killWeak(self, population, scores):
         sortedScores = sorted(scores.items(), key=operator.itemgetter(1))
@@ -219,9 +238,29 @@ class Genetics:
         return population
 
     def getRandomWeight(self):
+        """
+        Gets a random weight for the model
+        """
         return random.uniform(-self.random_weight_range, self.random_weight_range)
 
+    def savePopulation(self, population):
+        """
+        Saves the entire population
+        """
+        if self.save_population:
+            os.makedirs('./runs/run{}/population'.format(self.overallRun), exist_ok=True)
+            for i in range(len(population)):
+                self.model.set_weights(population[i])
+                self.model.save('./runs/run{}/population/individual{}.h5'.format(self.overallRun, i))
 
+    def saveBest(self, best):
+        """
+        Saves the best model for a generation
+        """
+        if self.save_best:
+            os.makedirs('./runs/run{}/best'.format(self.overallRun), exist_ok=True)
+            self.model.set_weights(best)
+            self.model.save('./runs/run{}/best/generation{}/h5'.format(self.overallRun, self.generation))
 
     def average(self, list):
         total = 0
