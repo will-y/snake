@@ -15,23 +15,23 @@ class Genetics:
     run = 0
     # Current generation
     generation = 0
-    # Number of individuals that will be selected to breed
-    selection_rate = 0.1
-    # Chance that a gene will mutate
+    # Number of individuals that will be selected to breed (default = 0.1)
+    selection_rate = 0.05
+    # Chance that a gene will mutate (default = 0.01)
     mutation_rate = 0.01
-    # Size of the population
-    population_size = 100
-    # Range of weights
+    # Size of the population (default = 100)
+    population_size = 200
+    # Range of weights (default = 1.0)
     random_weight_range = 1.0
-    # Number of generations to run
-    max_generations = 100
-    # Display the graphics or not
+    # Number of generations to run (default = 100)
+    max_generations = 500
+    # Display the graphics or not (default = True)
     show_graphics = True
-    # If true, will save the last generation that can be loaded and started from later
+    # If true, will save the last generation that can be loaded and started from later (default = False)
     save_population = False
-    # If true, will save the best individual from every generation
+    # If true, will save the best individual from every generation (default = False)
     save_best = False
-    # If true, will save the graph at the end to a png 
+    # If true, will save the graph at the end to a png  (default = False)
     save_graph = False
     # List that stores the average score of every generation
     generationScores = []
@@ -129,6 +129,9 @@ class Genetics:
 
             # Kill the bottom 90% of the population
             parents = self.killWeak(population, scores)
+
+            if self.save_best:
+                self.saveBest(parents[0])
 
             # Breed new ones from the top 10% of performers
             newPopulation = self.breedToFull(parents)
