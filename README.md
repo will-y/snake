@@ -1,5 +1,7 @@
 # Snake Machine Learning
 
+![snake](https://user-images.githubusercontent.com/3957023/63204709-afcb9f80-c068-11e9-99f2-9b570e2e733c.png)
+
 To Start, first run `python -m pip install -r './requirements.txt'` To get all of the requirements. (Note: This program right now only works in python version 3.6, not 3.7)
 
 As of this version, there is no ui that ties everything together, it has to be done manualy (the ui is a WIP)
