@@ -1,4 +1,5 @@
-from network import NeuralNetwork
+from net import NeuralNetwork
+from keras.models import load_model
 import numpy as np
 import random
 from snake import Main
@@ -16,7 +17,7 @@ class Genetics:
     # Current generation
     generation = 0
     # Number of individuals that will be selected to breed (default = 0.1)
-    selection_rate = 0.1
+    selection_rate = 0.05                                                          
     # Chance that a gene will mutate (default = 0.01)
     mutation_rate = 0.01
     # Size of the population (default = 100)
@@ -32,29 +33,37 @@ class Genetics:
     # If true, will save the best individual from every generation (default = False)
     save_best = False
     # If true, will save the graph at the end to a png  (default = False)
-    save_graph = False
+    save_graph = True
     # List that stores the average score of every generation
     generationScores = []
     # Generation max scores
     generationMaxScores = []
 
-    def __init__(self):
+    def __init__(self, replay=False, runId=0, generationId=0, load_pop=False):
         # Get the initial neural network model
         # TODO: Have option to read from a file
-        self.model = NeuralNetwork(input_shape=(16), action_space=4).model
-        # The number of the run the program is on, used for saving the models
-        self.overallRun = 0
+        self.model = NeuralNetwork(input_shape=(16), action_space=4, custom=True).model
+        pg.init()
         # Stuff for reading the file
         runFile = open("./runs/run.txt", 'r')
         self.overallRun = int(runFile.read(1))
-        runFile.close()
-        pg.init()
-        # Create the initial population
-        population = self.createInitalPopulation()
-        self.runGenetics(population)
-        runFile = open("./runs/run.txt", 'w')
-        runFile.write(str(self.overallRun + 1))
-        runFile.close()
+        if not replay:
+            if load_pop:
+                population = self.loadPopulation(runId)
+                if population == []:
+                    print("ERROR, POPULATION FILE NOT FOUND")
+                    return
+            else:
+                population = self.createInitalPopulation()
+            runFile.close()
+            # Create the initial population
+            self.runGenetics(population)
+            runFile = open("./runs/run.txt", 'w')
+            runFile.write(str(self.overallRun + 1))
+            runFile.close()
+        else:
+            self.model = load_model('./runs/run{}/best/generation{}.h5'.format(runId, generationId))
+            self.replay(self.model)
 
     def createInitalPopulation(self):
         """
@@ -69,20 +78,29 @@ class Genetics:
         for i in range(0, self.population_size):
             individual = initialWeights
             for a in range(0, len(initialWeights)):
-                a_layer = initialWeights[a]
-                for b in range(0, len(a_layer)):
-                    b_layer = a_layer[b]
-                    if not isinstance(b_layer, np.ndarray):
-                        initialWeights[a][b] = self.getRandomWeight()
-                        #initialWeights[a][b] = test
-                        continue
-                    for c in range(0, len(b_layer)):
-                        c_layer = b_layer[c]
-                        if not isinstance(c_layer, np.ndarray):
-                            initialWeights[a][b][c] = self.getRandomWeight()
-                            #initialWeights[a][b][c] = test
-                            continue
+                for b in range(0, len(initialWeights[a])):
+                    for c in range(0, len(initialWeights[a][b])):
+                        initialWeights[a][b][c] = self.getRandomWeight()
             population.append(copy.deepcopy(individual))
+
+        #-------Used only for keras model
+        # for i in range(0, self.population_size):
+        #     individual = initialWeights
+        #     for a in range(0, len(initialWeights)):
+        #         a_layer = initialWeights[a]
+        #         for b in range(0, len(a_layer)):
+        #             b_layer = a_layer[b]
+        #             if not isinstance(b_layer, np.ndarray):
+        #                 initialWeights[a][b] = self.getRandomWeight()
+        #                 #initialWeights[a][b] = test
+        #                 continue
+        #             for c in range(0, len(b_layer)):
+        #                 c_layer = b_layer[c]
+        #                 if not isinstance(c_layer, np.ndarray):
+        #                     initialWeights[a][b][c] = self.getRandomWeight()
+        #                     #initialWeights[a][b][c] = test
+        #                     continue
+        #    population.append(copy.deepcopy(individual))
         return population
 
     def gameCycle(self, model, value):
@@ -93,7 +111,8 @@ class Genetics:
         snake = Main(self.show_graphics, value, self.generation, self.run)
         counter = 0
         while snake.active:
-            q_values = model.predict(np.expand_dims(np.asarray(snake.createVision()).astype(np.float64), axis=0), batch_size=1)
+            q_values = model.predict(snake.createVision())
+            #q_values = model.predict(np.expand_dims(np.asarray(snake.createVision()).astype(np.float64), axis=0), batch_size=1)
             action = np.argmax(q_values)
             snake.rotate(action)
             snake.gameTick()
@@ -197,24 +216,34 @@ class Genetics:
         The child gets attributes from both of its parents
         """
         child = copy.deepcopy(parent1)
-        for a in range(0, len(child)):
-            a_layer = child[a]
-            for b in range(0, len(a_layer)):
-                b_layer = a_layer[b]
-                if not isinstance(b_layer, np.ndarray):
+        # for my model
+        for a in range(len(child)):
+            for b in range(len(child[a])):
+                for c in range(len(child[a][b])):
                     if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
-                        child[a][b] = self.getRandomWeight()
+                        child[a][b][c] = self.getRandomWeight()
                     elif random.choice((True, False)):
-                            child[a][b] = copy.deepcopy(parent2[a][b])
-                    continue
-                for c in range(0, len(b_layer)):
-                    c_layer = b_layer[c]
-                    if not isinstance(c_layer, np.ndarray):
-                        if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
-                            child[a][b][c] = self.getRandomWeight()
-                        elif random.choice((True, False)):
-                            child[a][b][c] = copy.deepcopy(parent2[a][b][c])
-                        continue
+                        child[a][b][c] = copy.deepcopy(parent2[a][b][c])
+
+        # for keras model
+        # for a in range(0, len(child)):
+        #     a_layer = child[a]
+        #     for b in range(0, len(a_layer)):
+        #         b_layer = a_layer[b]
+        #         if not isinstance(b_layer, np.ndarray):
+        #             if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+        #                 child[a][b] = self.getRandomWeight()
+        #             elif random.choice((True, False)):
+        #                     child[a][b] = copy.deepcopy(parent2[a][b])
+        #             continue
+        #         for c in range(0, len(b_layer)):
+        #             c_layer = b_layer[c]
+        #             if not isinstance(c_layer, np.ndarray):
+        #                 if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+        #                     child[a][b][c] = self.getRandomWeight()
+        #                 elif random.choice((True, False)):
+        #                     child[a][b][c] = copy.deepcopy(parent2[a][b][c])
+        #                 continue
 
         return child
 
@@ -272,4 +301,23 @@ class Genetics:
         
         return total / len(list)
 
-Genetics()
+    def replay(self, model):
+        """
+        Dispalys a replay for the given model
+        """
+        self.gameCycle(model, -1)
+    
+    def loadPopulation(self, run):
+        """
+        Loads a population from a file for the specified run
+        """
+        if os.path.exists('./runs/run{}/population'.format(run)):
+            initial_population = []
+            for i in range(0, self.population_size):
+                temp_model = load_model('./runs/run{}/population/individual{}.h5'.format(run, i))
+                initial_population.append(temp_model.get_weights())
+            return initial_population
+        return []
+
+
+Genetics(replay=False, runId=1, generationId=0, load_pop=False)
