@@ -1,4 +1,5 @@
-# Snake Machine Learning
+### <span style="color: red">This is the version that uses external libraries to do the machine learning and allows you to manually play the game, it will no longer be updated
+# Snake Machine Learning </span>
 
 ![snake](https://user-images.githubusercontent.com/3957023/63204709-afcb9f80-c068-11e9-99f2-9b570e2e733c.png)
 
