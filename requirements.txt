@@ -1,5 +1,3 @@
 numpy==1.16.4
-keras
 matplotlib
 pygame
-tensorflow
