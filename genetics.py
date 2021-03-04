@@ -1,23 +1,22 @@
 from net import NeuralNetwork
-from keras.models import load_model
 import numpy as np
 import random
 from snake import Main
 import pygame as pg
 import copy
 import operator
-import matplotlib
 import matplotlib.pyplot as plt
 import os
 
+
 class Genetics:
     # Parameters for controlling the genetics
-    # Current itteration of the genetics
+    # Current iteration of the genetics
     run = 0
     # Current generation
     generation = 0
     # Number of individuals that will be selected to breed (default = 0.1)
-    selection_rate = 0.05                                                          
+    selection_rate = 0.1
     # Chance that a gene will mutate (default = 0.01)
     mutation_rate = 0.01
     # Size of the population (default = 100)
@@ -39,10 +38,10 @@ class Genetics:
     # Generation max scores
     generationMaxScores = []
 
-    def __init__(self, replay=False, runId=0, generationId=0, load_pop=False):
+    def __init__(self, replay=False, runId=0, load_pop=False):
         # Get the initial neural network model
         # TODO: Have option to read from a file
-        self.model = NeuralNetwork(input_shape=(16), action_space=4, custom=True).model
+        self.model = NeuralNetwork(input_shape=16, action_space=4).model
         pg.init()
         # Stuff for reading the file
         runFile = open("./runs/run.txt", 'r')
@@ -50,11 +49,11 @@ class Genetics:
         if not replay:
             if load_pop:
                 population = self.loadPopulation(runId)
-                if population == []:
+                if not population:
                     print("ERROR, POPULATION FILE NOT FOUND")
                     return
             else:
-                population = self.createInitalPopulation()
+                population = self.createInitialPopulation()
             runFile.close()
             # Create the initial population
             self.runGenetics(population)
@@ -62,10 +61,11 @@ class Genetics:
             runFile.write(str(self.overallRun + 1))
             runFile.close()
         else:
-            self.model = load_model('./runs/run{}/best/generation{}.h5'.format(runId, generationId))
-            self.replay(self.model)
+            print("REPLAY NOT IMPLEMENTED YET")
+            # self.model = load_model('./runs/run{}/best/generation{}.h5'.format(runId, generationId))
+            # self.replay(self.model)
 
-    def createInitalPopulation(self):
+    def createInitialPopulation(self):
         """
         Creates the initial population for the model to work off of
         """
@@ -83,7 +83,7 @@ class Genetics:
                         initialWeights[a][b][c] = self.getRandomWeight()
             population.append(copy.deepcopy(individual))
 
-        #-------Used only for keras model
+        # -------Used only for keras model
         # for i in range(0, self.population_size):
         #     individual = initialWeights
         #     for a in range(0, len(initialWeights)):
@@ -103,47 +103,24 @@ class Genetics:
         #    population.append(copy.deepcopy(individual))
         return population
 
-    def gameCycle(self, model, value):
-        """
-        Does a game cycle for the passed in model
-        Returns the score that it got
-        """
-        snake = Main(self.show_graphics, value, self.generation, self.run)
-        counter = 0
-        while snake.active:
-            q_values = model.predict(snake.createVision())
-            #q_values = model.predict(np.expand_dims(np.asarray(snake.createVision()).astype(np.float64), axis=0), batch_size=1)
-            action = np.argmax(q_values)
-            snake.rotate(action)
-            snake.gameTick()
-            if self.show_graphics:
-                snake.updateScreen()
-            counter += 1
-            if counter > 10000:
-                self.run = self.run + 1
-                return {value: snake.getFitness()}
-
-        score = snake.getFitness()
-        self.run = self.run + 1
-        return {value : score}
-        # return {value : score}
-
     def runGenetics(self, population):
         """
         Runs the simulation
         """
+        snake = Main(True, self.population_size, self.generation, 0)
         while self.generation < self.max_generations:
+            snake.clear()
             # Scores for all of the populations
-            scores = {}
+            scores = snake.run_generation(population, self.model, self.generation)
 
             # Run game for all members
-            for i in range(0, self.population_size):
-                self.model.set_weights(population[i])
-                scores.update(self.gameCycle(self.model, i))
-            
+            # for i in range(0, self.population_size):
+            #     self.model.set_weights(population[i])
+            #     scores.update(self.gameCycle(self.model, i))
+
             print(scores)
             self.generationScores.append(self.average(scores))
-            
+
             self.generation += 1
 
             # Kill the bottom 90% of the population
@@ -155,7 +132,7 @@ class Genetics:
             # Breed new ones from the top 10% of performers
             newPopulation = self.breedToFull(parents)
             population = newPopulation
-            #newPopulation = self.mutate(newPopulation)
+            # newPopulation = self.mutate(newPopulation)
             print("Generation: {}".format(self.generation))
         # Ending things
         print(self.generationScores)
@@ -172,7 +149,6 @@ class Genetics:
 
         self.savePopulation(population)
 
-
     def killWeak(self, population, scores):
         sortedScores = sorted(scores.items(), key=operator.itemgetter(1))
         sortedScores.reverse()
@@ -185,20 +161,20 @@ class Genetics:
         print(newPopulationIds)
 
         newPopulation = []
-        
+
         for i in range(0, len(newPopulationIds)):
             newPopulation.append(population[newPopulationIds[i]])
         return newPopulation
 
     def breedToFull(self, parents):
         newPopulation = copy.deepcopy(parents)
-        i=0
+        i = 0
         while len(newPopulation) < self.population_size:
-            #print("running: {}".format(i))
-            i+=1
+            # print("running: {}".format(i))
+            i += 1
             rand1 = random.choice(range(0, int(self.population_size * self.selection_rate)))
             rand2 = rand1
-            while(rand2 == rand1):
+            while rand2 == rand1:
                 rand2 = random.choice(range(0, int(self.population_size * self.selection_rate)))
             parent1 = parents[rand1]
             parent2 = parents[rand2]
@@ -207,7 +183,7 @@ class Genetics:
             else:
                 print("same")
                 pass
-        
+
         return newPopulation
 
     def breed(self, parent1, parent2):
@@ -220,7 +196,7 @@ class Genetics:
         for a in range(len(child)):
             for b in range(len(child[a])):
                 for c in range(len(child[a][b])):
-                    if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+                    if np.random.choice((True, False), p=[self.mutation_rate, 1 - self.mutation_rate]):
                         child[a][b][c] = self.getRandomWeight()
                     elif random.choice((True, False)):
                         child[a][b][c] = copy.deepcopy(parent2[a][b][c])
@@ -258,13 +234,13 @@ class Genetics:
                 for b in range(0, len(a_layer)):
                     b_layer = a_layer[b]
                     if not isinstance(b_layer, np.ndarray):
-                        if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+                        if np.random.choice((True, False), p=[self.mutation_rate, 1 - self.mutation_rate]):
                             toMutate[a][b] = self.getRandomWeight()
                         continue
                     for c in range(0, len(b_layer)):
                         c_layer = b_layer[c]
                         if not isinstance(c_layer, np.ndarray):
-                            if np.random.choice((True, False), p=[self.mutation_rate, 1-self.mutation_rate]):
+                            if np.random.choice((True, False), p=[self.mutation_rate, 1 - self.mutation_rate]):
                                 toMutate[a][b][c] = self.getRandomWeight()
                             continue
         return population
@@ -298,26 +274,26 @@ class Genetics:
         total = 0
         for i in range(len(list)):
             total += list[i]
-        
+
         return total / len(list)
 
     def replay(self, model):
         """
-        Dispalys a replay for the given model
+        Displays a replay for the given model
         """
         self.gameCycle(model, -1)
-    
+
     def loadPopulation(self, run):
         """
         Loads a population from a file for the specified run
         """
-        if os.path.exists('./runs/run{}/population'.format(run)):
-            initial_population = []
-            for i in range(0, self.population_size):
-                temp_model = load_model('./runs/run{}/population/individual{}.h5'.format(run, i))
-                initial_population.append(temp_model.get_weights())
-            return initial_population
+        # if os.path.exists('./runs/run{}/population'.format(run)):
+        # initial_population = []
+        # for i in range(0, self.population_size):
+        #     temp_model = load_model('./runs/run{}/population/individual{}.h5'.format(run, i))
+        #     initial_population.append(temp_model.get_weights())
+        # return initial_population
         return []
 
 
-Genetics(replay=False, runId=1, generationId=0, load_pop=False)
+Genetics(replay=False, runId=1, load_pop=False)
