@@ -1,0 +1,17 @@
+#start_button {
+    background: green;
+    color: black;
+    padding: 10px 20px 10px 20px;
+    border-radius: 6px;
+    margin: 5px;
+    border: 2px solid black;
+}
+
+QWidget {
+    margin-right: 5px;
+    margin-left: 5px
+}
+
+#error QLabel{
+    color: red;
+}

@@ -1,19 +1,20 @@
 import pygame as pg
+import math as m
 from game_state import GameState
 
 
-class Main:
-    def __init__(self, showGraphics, pop_size=25, generation=None, run=None):
+class Snake:
+    def __init__(self, showGraphics, pop_size=25, generation=None, run=None, grid_size=5, grid_count=30, games_to_show=25):
         # Used to show graphics or not
         self.showGraphics = showGraphics
-        # square root of the number of games to show
-        self.games_to_show = 5
+        # the number of games to show
+        self.games_to_show = games_to_show
         # The size of the individual grid squares
-        self.gridSize = 7
+        self.grid_size = grid_size
         # The number of squares on the game board
-        self.gridCount = 30
+        self.grid_count = grid_count
         # size of the screen
-        self.size = self.gridSize * self.gridCount * self.games_to_show, self.gridSize * self.gridCount * self.games_to_show
+        self.size = int(self.grid_size * self.grid_count * m.ceil(m.sqrt(self.games_to_show))), int(self.grid_size * self.grid_count * m.ceil(m.sqrt(self.games_to_show)))
         # pygame screen
         if self.showGraphics:
             self.screen = pg.display.set_mode(self.size)
@@ -43,9 +44,9 @@ class Main:
     def create_game_states(self):
         game_states = []
         for i in range(self.pop_size):
-            x = i % self.games_to_show
-            y = i // self.games_to_show
-            game_states.append(GameState((x * self.gridCount * self.gridSize, y * self.gridCount * self.gridSize), self.gridSize))
+            x = i % int(m.ceil(m.sqrt(self.games_to_show)))
+            y = i // int(m.ceil(m.sqrt(self.games_to_show)))
+            game_states.append(GameState((x * self.grid_count * self.grid_size, y * self.grid_count * self.grid_size), self.grid_size))
 
         return game_states
 
@@ -90,7 +91,7 @@ class Main:
         """
         Draws all grids on the screen
         """
-        for i in range(self.games_to_show ** 2):
+        for i in range(self.games_to_show):
             self.game_states[i].draw_game(self.screen)
 
     def clear(self):

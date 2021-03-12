@@ -1,0 +1,1 @@
+PYFORMS_STYLESHEET = 'style.css'

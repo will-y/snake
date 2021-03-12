@@ -1,7 +1,7 @@
 from net import NeuralNetwork
 import numpy as np
 import random
-from snake import Main
+from snake import Snake
 import pygame as pg
 import copy
 import operator
@@ -38,7 +38,23 @@ class Genetics:
     # Generation max scores
     generationMaxScores = []
 
-    def __init__(self, replay=False, runId=0, load_pop=False):
+    def __init__(self, replay=False, runId=0, load_pop=False, selection_rate=0.1, mutation_rate=0.01, population_size=100,
+                 random_weight_range=1.0, max_generations=100, show_graphics=True, save_population=False, save_best=False,
+                 save_graph=True, games_to_show=25, grid_count=30, grid_size=10):
+        # Set parameters
+        self.selection_rate = selection_rate
+        self.mutation_rate = mutation_rate
+        self.population_size = population_size
+        self.random_weight_range = random_weight_range
+        self.max_generations = max_generations
+        self.show_graphics = show_graphics
+        self.save_population = save_population
+        self.save_best = save_best
+        self.save_graph = save_graph
+        self.games_to_show = games_to_show
+        self.grid_count = grid_count
+        self.grid_size = grid_size
+
         # Get the initial neural network model
         # TODO: Have option to read from a file
         self.model = NeuralNetwork(input_shape=16, action_space=4).model
@@ -107,7 +123,8 @@ class Genetics:
         """
         Runs the simulation
         """
-        snake = Main(True, self.population_size, self.generation, 0)
+        snake = Snake(True, self.population_size, self.generation, 0,
+                      grid_size=self.grid_size, grid_count=self.grid_count, games_to_show=self.games_to_show)
         while self.generation < self.max_generations:
             snake.clear()
             # Scores for all of the populations
@@ -144,7 +161,7 @@ class Genetics:
         ax.set(xlabel='generation', ylabel='avg score', title='Generations Over Time')
         ax.grid()
         if self.save_graph:
-            fig.savefig("graph{}.png".format(self.overallRun))
+            fig.savefig("graphs/graph{}.png".format(self.overallRun))
         plt.show()
 
         self.savePopulation(population)
@@ -296,4 +313,4 @@ class Genetics:
         return []
 
 
-Genetics(replay=False, runId=1, load_pop=False)
+# Genetics(replay=False, runId=1, load_pop=False)
